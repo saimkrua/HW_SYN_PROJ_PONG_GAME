@@ -8,7 +8,9 @@ module gameLogic(
     input videoOn,
     input [3:0] movement,
     input throwBall,
-    output wire [11:0] rgb
+    output wire [11:0] rgb,
+    output wire [7:0] scorePlayer1,
+    output wire [7:0] scorePlayer2
 );
 
     wire player1Up, player1Down, player2Up, player2Down; 
@@ -22,15 +24,16 @@ module gameLogic(
     reg scorerNext;
 
     // Parameter
-    parameter paddleWidth = 10; // width of the paddle
-    parameter paddleHeight = 120; // height of the paddle
-    parameter paddleVelocity = 5; // velocity of the paddle
+    parameter paddleWidth = 10; // paddle width
+    parameter paddleHeight = 120; // paddle height
+    parameter paddleVelocity = 5; // paddle velocity
     
-    parameter ballDefaultX = 300; // default value of the distance between the ball and left side of the screen
-    parameter ballDefaultY = 300; // default value of the distance between the ball and top side of the screen
-    parameter ballRadius = 8; // radius of the ball
-    parameter velocityX = 2; // Horizontal velocity of the ball
-    parameter velocityY = 2; // Vertical velocity of the ball
+    // 0,0 left,top
+    parameter ballDefaultX = 300; // default x ball
+    parameter ballDefaultY = 300; // default y ball
+    parameter ballRadius = 8; // ball radius
+    parameter velocityX = 2; // x ball velocity
+    parameter velocityY = 2; // y ball velocity
 
     // Player 1
     integer leftPaddleY; // the distance between paddle and top side of screen
@@ -68,22 +71,22 @@ module gameLogic(
     integer velocityYReg; // current vertical velocity of the ball
     integer velocityYNext; // next vertical velocity of the ball
     wire displayBall; // to display ball in vga
-    wire[11:0] rgbBall; // ball color
+    wire [11:0] rgbBall; // ball color
 
-    // Refresh the display
+    // FPS
     reg [19:0] refreshReg;
     wire [19:0] refreshNext;
     parameter refreshConstant = 830000;
     wire refreshRate;
 
-    // Mux to display
+    // Display mux
     wire[6:0] outputMux;
 
     // RGB buffer
     reg[11:0] rgbReg; 
     wire[11:0] rgbNext; 
 
-    // Initialize
+    // Init
     initial begin
         velocityYReg = 0;
         velocityYNext = 0;
@@ -101,12 +104,12 @@ module gameLogic(
         rightPaddleNextY = 380;
     end
 
-    // Refreshing
+    // Refresh
     always @(posedge clk) begin
         refreshReg <= refreshNext;   
     end
 
-    // Assign refresh logics
+    // refresh logics
     assign refreshNext = refreshReg === refreshConstant ? 0 : refreshReg + 1; 
     assign refreshRate = refreshReg === 0 ? 1'b1 : 1'b0; 
 
@@ -279,29 +282,29 @@ module gameLogic(
 
     // display left paddle object on the screen
     assign displayLeftPaddle = y < leftPaddleY & y > leftPaddleY - paddleHeight & x > leftPaddleX & x < leftPaddleX + paddleWidth ? 1'b1 : 1'b0; 
-    assign rgbLeftPaddle = 3'h586; // color of left paddle: blue
+    assign rgbLeftPaddle = 12'b101001111001; // color of left paddle
 
     // display right paddle object on the screen
     assign displayRightPaddle = y < rightPaddleY & y > rightPaddleY - paddleHeight & x > rightPaddleX & x < rightPaddleX + paddleWidth ? 1'b1 : 1'b0; 
-    assign rgbRightPaddle = 3'h001; // color of left paddle: red
+    assign rgbRightPaddle = 12'b011100110110; // color of left paddle
 
     // display ball object on the screen
     assign displayBall = (x-ballX)*(x-ballX) + (y-ballY)*(y-ballY) <= ballRadius*ballRadius ? 1'b1 : 1'b0;
-    assign rgbBall = 3'h111; // color of ball: white
+    assign rgbBall = 12'b010100110101; // color of ball
 
     // display player 1 score on the screen
     assign displayPlayer1Score = x >= 80 & x < 112 & y >= 80 & y < 88; 
     numberToPixel player1FirstDigitConvertor(totalscorePlayer1[7:4], y - 80, x - 80, player1FirstDigit);
     numberToPixel player1SecondDigitConvertor(totalscorePlayer1[3:0], y - 80, x - 96, player1SecondDigit);
-    assign rgbPlayer1Score = x >= 96 ? player1SecondDigit ? 3'b111 : 3'b000
-                                    : player1FirstDigit ? 3'b111 : 3'b000; // color of score: white if that area contain number
+    assign rgbPlayer1Score = x >= 96 ? player1SecondDigit ? 12'b010100110101 : 12'b111010111010
+                                    : player1FirstDigit ? 12'b010100110101 : 12'b111010111010; // color of score : color of bg
 
     // display player 2 score on the screen
     assign displayPlayer2Score = x >= 528 & x < 560 & y >= 80 & y < 88; 
     numberToPixel player2FirstDigitConvertor(totalscorePlayer2[7:4], y - 80, x - 528, player2FirstDigit);
     numberToPixel player2SecondDigitConvertor(totalscorePlayer2[3:0], y - 80, x - 544, player2SecondDigit);
-    assign rgbPlayer2Score = x >= 544 ? player2SecondDigit ? 3'b111 : 3'b000
-                                    : player2FirstDigit ? 3'b111 : 3'b000; // color of score: white if that area contain number
+    assign rgbPlayer2Score = x >= 544 ? player2SecondDigit ? 12'b010100110101 : 12'b111010111010
+                                    : player2FirstDigit ? 12'b010100110101 : 12'b111010111010; // color of score: white if that area contain number
 
     always @(posedge clk) begin 
         rgbReg <= rgbNext;   
@@ -310,7 +313,7 @@ module gameLogic(
     // mux
     assign outputMux = {videoOn, displayLeftPaddle, displayRightPaddle, displayBall, displayPlayer1Score, displayPlayer2Score}; 
     // assign rgbNext from outputMux.
-    assign rgbNext = outputMux === 6'b100000 ? 3'b000: 
+    assign rgbNext = outputMux === 6'b100000 ? 12'b111010111010: 
                     outputMux === 6'b110000 ? rgbLeftPaddle: 
                     outputMux === 6'b110100 ? rgbLeftPaddle: 
                     outputMux === 6'b101000 ? rgbRightPaddle: 
@@ -320,36 +323,39 @@ module gameLogic(
                     outputMux === 6'b100110 ? rgbBall:
                     outputMux === 6'b100010 ? rgbPlayer1Score:
                     outputMux === 6'b100001 ? rgbPlayer2Score:
-                    3'b000;
+                    12'b000000000000;
                     
     // output part
     assign rgb = rgbReg; 
+    assign scorePlayer1 = totalscorePlayer1;
+    assign scorePlayer2 = totalscorePlayer2;
 
-    // score management
+    // Score management
     always @(posedge clk)
     begin
-        if(reset == 1) begin 
-            totalscorePlayer1 = 8'd0; // reset score player1
-            totalscorePlayer2 = 8'd0; // reset score player2
+        if (reset) begin
+            // Reset scores for both players
+            totalscorePlayer1 <= 8'd0;
+            totalscorePlayer2 <= 8'd0;
         end
-        else if (scoreCheckerPlayer1 == 1 && !throwBall) begin // if player1 score count is 1 then add player1 score
-            if(totalscorePlayer1[3:0] < 4'd9) totalscorePlayer1[3:0] = totalscorePlayer1[3:0] + 1;
-            else begin
-                if(totalscorePlayer1[7:4] < 4'd9) // If player1 1's unit digit score is 9, then add 1 to the tens and set 1s to 0
-                begin
-                    totalscorePlayer1[3:0] = 4'd0;
-                    totalscorePlayer1[7:4] = totalscorePlayer1[7:4] + 1;
-                end
+        else if (scoreCheckerPlayer1 && !throwBall) begin
+            // Increment Player 1 score
+            if (totalscorePlayer1[3:0] < 4'd9)
+                totalscorePlayer1[3:0] <= totalscorePlayer1[3:0] + 1;
+            else if (totalscorePlayer1[7:4] < 4'd9) begin
+                // If units digit is 9, increment tens and reset units
+                totalscorePlayer1[3:0] <= 4'd0;
+                totalscorePlayer1[7:4] <= totalscorePlayer1[7:4] + 1;
             end
         end
-        else if (scoreCheckerPlayer2 == 1 && !throwBall) begin // if player2 score count is 1 then add player2 score
-            if(totalscorePlayer2[3:0] < 4'd9) totalscorePlayer2[3:0] = totalscorePlayer2[3:0] + 1;
-            else begin
-                if(totalscorePlayer2[7:4] < 4'd9) // If player2 1's unit digit score is 9, then add 1 to the tens and set 1s to 0
-                begin
-                    totalscorePlayer2[3:0] = 4'd0;
-                    totalscorePlayer2[7:4] = totalscorePlayer2[7:4] + 1;
-                end
+        else if (scoreCheckerPlayer2 && !throwBall) begin
+            // Increment Player 2 score
+            if (totalscorePlayer2[3:0] < 4'd9)
+                totalscorePlayer2[3:0] <= totalscorePlayer2[3:0] + 1;
+            else if (totalscorePlayer2[7:4] < 4'd9) begin
+                // If units digit is 9, increment tens and reset units
+                totalscorePlayer2[3:0] <= 4'd0;
+                totalscorePlayer2[7:4] <= totalscorePlayer2[7:4] + 1;
             end
         end
     end
