@@ -240,10 +240,7 @@ module gameLogic(
             end
             
             ballNextX <= ballX + velocityXReg; // move the ball's horizontal location   
-            ballNextY <= ballY + velocityYReg; // move the ball's vertical location.
-
-            
-            
+            ballNextY <= ballY + velocityYReg; // move the ball's vertical location
             
             if (ballX >= 630) begin
                 // if player 1 scores, ball passes through the horizontal location of right paddle.
@@ -334,7 +331,7 @@ module gameLogic(
                     outputMux === 7'b1000100 ? rgbPlayer1Score:
                     outputMux === 7'b1000010 ? rgbPlayer2Score:
                     outputMux == 7'b1000001 ? rgbGameName:
-                    12'b100111001111;
+                    12'b000000000000;
                     
     // output part
     assign rgb = rgbReg; 

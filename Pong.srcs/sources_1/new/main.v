@@ -32,7 +32,8 @@ module main(
     end endgenerate
     
     uart keyboardUART(clk, RsRx, RsTx, movement, throwBall); // keyboard input
-    gameLogic gameInstance( // main game logic and animation logic
+    // main game logic and animation logic
+    gameLogic gameInstance(
         clk,
         btnU,// reset
         x,// position x
