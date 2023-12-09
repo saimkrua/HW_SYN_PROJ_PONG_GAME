@@ -1,6 +1,6 @@
 `timescale 1ns / 1ps
 
-module animationLogic(
+module gameLogic(
     input clk,
     input reset,
     input [9:0] x,
@@ -11,11 +11,11 @@ module animationLogic(
     output wire [2:0] rgb
 );
 
+    // Movement
     wire player1Up, player1Down, player2Up, player2Down; 
     assign {player1Up,player1Down,player2Up,player2Down} = movement;
     
-    reg [7:0] totalscorePlayer1;
-    reg [7:0] totalscorePlayer2;
+    // Score
     reg scoreCheckerPlayer1;
     reg scoreCheckerPlayer2;
     reg scorer; 
@@ -40,10 +40,12 @@ module animationLogic(
     wire[2:0] rgbLeftPaddle; // player 1's paddle color
 
     // Player 1' score
+    reg [7:0] totalscorePlayer1;
     wire displayPlayer1Score; // to display player 1's score
     wire player1FirstDigit; // output player 1's first digit from convertor
     wire player1SecondDigit; // output player 1's second digit from convertor
     wire[2:0] rgbPlayer1Score; // player 1's score color
+    
 
     // Player 2
     integer rightPaddleY; // the distance between paddle and top side of screen
@@ -53,6 +55,7 @@ module animationLogic(
     wire[2:0] rgbRightPaddle; // player 2's paddle color
 
     // Player 2' score
+    reg [7:0] totalscorePlayer2;
     wire displayPlayer2Score; // to display player 1's score
     wire player2FirstDigit; // output player 1's first digit from convertor
     wire player2SecondDigit; // output player 1's second digit from convertor

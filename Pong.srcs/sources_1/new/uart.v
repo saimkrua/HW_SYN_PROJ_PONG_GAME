@@ -1,40 +1,23 @@
 `timescale 1ns / 1ps
-//////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
-// 
-// Create Date: 10/31/2021 09:59:35 PM
-// Design Name: 
-// Module Name: uart
-// Project Name: 
-// Target Devices: 
-// Tool Versions: 
-// Description: 
-// 
-// Dependencies: 
-// 
-// Revision:
-// Revision 0.01 - File Created
-// Additional Comments:
-// 
-//////////////////////////////////////////////////////////////////////////////////
 
 module uart(
     input clk,
     input RsRx,
     output RsTx,
-    output [4:0] ws85l
+    output wire [3:0] movementIO,
+    output wire throwIO
     );
     
     reg en, last_rec;
     reg [7:0] data_in;
-    reg [3:0] movement = 4'b0000; // 1st player up/down, 2nd player up/down
-    reg l = 1'b0; // l key
-    reg lState = 1'b0; // l key state
+    reg [3:0] movement = 4'b0000; // player1Up, player1Down, player2Up, player2Down
+    reg throw = 1'b0; // throw
+    reg throwState = 1'b0; // throw state
     wire [7:0] data_out;
     wire sent, received, baud;
     
-    assign ws85l = {movement,l}; // assign movement and l to ws85l
+    assign movementIO = movement;
+    assign throwIO = throw;
     
     baudrate_gen baudrate_gen(clk, baud); // generate baud rate
     uart_rx receiver(baud, RsRx, received, data_out); // encode data to 8 bits
@@ -44,8 +27,7 @@ module uart(
         if (en) en = 0;
         if (~last_rec & received) begin
             data_in = data_out;
-            if (data_in == 8'h77 || data_in == 8'h73 // w,s,8,5,l keys
-            || data_in == 8'h70 || data_in == 8'h6C || data_in == 8'h20) en = 1; // recieve only w,s,8,5,l keys
+            if (data_in == 8'h77 || data_in == 8'h73 || data_in == 8'h70 || data_in == 8'h6C || data_in == 8'h20) en = 1; // recieve w,s,p,l,space keys
         end
         last_rec = received;
     end
@@ -53,23 +35,24 @@ module uart(
     always @(posedge sent) begin
         if (sent) begin
             case (data_in)
-                8'h77: movement[3:2] = 2'b10; // w 1st player up
-                8'h73: movement[3:2] = 2'b01; // s 1st player down
-                8'h70: movement[1:0] = 2'b10; // p 2nd player up
-                8'h6C: movement[1:0] = 2'b01; // l 2nd player down
+                8'h77: movement[3:2] = 2'b10; // w : player 1 up
+                8'h73: movement[3:2] = 2'b01; // s : player 1 down
+                8'h70: movement[1:0] = 2'b10; // p : player 2 up
+                8'h6C: movement[1:0] = 2'b01; // l : player 2 down
             endcase
         end
     end
     
+    /*throw ball*/
     always @(posedge baud) begin
-        if(sent) begin // l key to throw ball
-            if(data_in == 8'h20) begin // l key pressed
-                l = 1'b1;
-                lState = 1'b1;
+        if(sent) begin 
+            if(data_in == 8'h20) begin // space pressed
+                throw = 1'b1;
+                throwState = 1'b1;
             end
             else  begin
-                l = 1'b0;
-                lState = 1'b0; // l key released
+                throw = 1'b0;
+                throwState = 1'b0; // space released
             end
         end
     end
