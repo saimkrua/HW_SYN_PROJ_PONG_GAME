@@ -37,26 +37,26 @@ module gameLogic(
     integer leftPaddleNextY; // the distance between paddle and top side of screen
     parameter leftPaddleX = 20; // the distance between bar and left side of screen
     wire displayLeftPaddle; // to display player 1's paddle in vga
-    wire[2:0] rgbLeftPaddle; // player 1's paddle color
+    wire[11:0] rgbLeftPaddle; // player 1's paddle color
 
     // Player 1' score
     wire displayPlayer1Score; // to display player 1's score
     wire player1FirstDigit; // output player 1's first digit from convertor
     wire player1SecondDigit; // output player 1's second digit from convertor
-    wire[2:0] rgbPlayer1Score; // player 1's score color
+    wire[11:0] rgbPlayer1Score; // player 1's score color
 
     // Player 2
     integer rightPaddleY; // the distance between paddle and top side of screen
     integer rightPaddleNextY; // the distance between paddle and top side of screen
     parameter rightPaddleX = 610; // the distance between bar and left side of screen
     wire displayRightPaddle; // to display player 2's paddle in vga
-    wire[2:0] rgbRightPaddle; // player 2's paddle color
+    wire[11:0] rgbRightPaddle; // player 2's paddle color
 
     // Player 2' score
     wire displayPlayer2Score; // to display player 1's score
     wire player2FirstDigit; // output player 1's first digit from convertor
     wire player2SecondDigit; // output player 1's second digit from convertor
-    wire[2:0] rgbPlayer2Score; // player 1's score color
+    wire[11:0] rgbPlayer2Score; // player 1's score color
 
     // Ball
     integer ballX; // the distance between the ball and left side of the screen
@@ -68,7 +68,7 @@ module gameLogic(
     integer velocityYReg; // current vertical velocity of the ball
     integer velocityYNext; // next vertical velocity of the ball
     wire displayBall; // to display ball in vga
-    wire[2:0] rgbBall; // ball color
+    wire[11:0] rgbBall; // ball color
 
     // Refresh the display
     reg [19:0] refreshReg;
@@ -80,8 +80,8 @@ module gameLogic(
     wire[6:0] outputMux;
 
     // RGB buffer
-    reg[2:0] rgbReg; 
-    wire[2:0] rgbNext; 
+    reg[11:0] rgbReg; 
+    wire[11:0] rgbNext; 
 
     // Initialize
     initial begin
@@ -279,18 +279,15 @@ module gameLogic(
 
     // display left paddle object on the screen
     assign displayLeftPaddle = y < leftPaddleY & y > leftPaddleY - paddleHeight & x > leftPaddleX & x < leftPaddleX + paddleWidth ? 1'b1 : 1'b0; 
-    assign rgbLeftPaddle = 3'b100; // color of left paddle: blue
+    assign rgbLeftPaddle = 3'h586; // color of left paddle: blue
 
     // display right paddle object on the screen
     assign displayRightPaddle = y < rightPaddleY & y > rightPaddleY - paddleHeight & x > rightPaddleX & x < rightPaddleX + paddleWidth ? 1'b1 : 1'b0; 
-    assign rgbRightPaddle = 3'b001; // color of left paddle: red
+    assign rgbRightPaddle = 3'h001; // color of left paddle: red
 
     // display ball object on the screen
     assign displayBall = (x-ballX)*(x-ballX) + (y-ballY)*(y-ballY) <= ballRadius*ballRadius ? 1'b1 : 1'b0;
-    assign rgbBall = 3'b111; // color of ball: white
-    assign displayHeart = ((x-ballX)*(x-ballX) + (y-ballY+0.2)*(y-ballY+0.2)-(0.4*ballRadius))*((x-ballX)*(x-ballX)+(y-ballY+0.2)*(y-ballY+0.2)-(0.4*ballRadius))*((x-ballX)*(x-ballX)+(y-ballY+0.2)*(y-ballY+0.2)-(0.4*ballRadius)) <= ((x-ballX)*(x-ballX))*((y-ballY+0.2)*(y-ballY+0.2)*(y-ballY+0.2)) ? 1'b1 : 1'b0; 
-    assign rgbHeart = 3'b100; // color of heart: red
-
+    assign rgbBall = 3'h111; // color of ball: white
 
     // display player 1 score on the screen
     assign displayPlayer1Score = x >= 80 & x < 112 & y >= 80 & y < 88; 
@@ -314,7 +311,7 @@ module gameLogic(
     assign outputMux = {videoOn, displayLeftPaddle, displayRightPaddle, displayBall, displayHeart, displayPlayer1Score, displayPlayer2Score}; 
 
     // assign rgbNext from outputMux.
-    assign rgbNext = outputMux === 7'b1000000 ? 3'b000: 
+    assign rgbNext = outputMux === 7'b1000000 ? 3'hdff: 
                      outputMux === 7'b1100000 ? rgbLeftPaddle: 
                      outputMux === 7'b1101000 ? rgbLeftPaddle: 
                      outputMux === 7'b1010000 ? rgbRightPaddle: 

@@ -17,12 +17,12 @@ module main(
     wire [3:0] movement;
     wire [2:0] rgb_out;
     
-//    assign vgaBlue = {rgb_out[3],rgb_out[2],rgb_out[1],rgb_out[0]}; // assign rgb_out to vgaBlue, vgaGreen, vgaRed
-//    assign vgaGreen = {rgb_out[7],rgb_out[6],rgb_out[5],rgb_out[4]};
-//    assign vgaRed = {rgb_out[11],rgb_out[10],rgb_out[9],rgb_out[8]};
-    assign vgaBlue = {rgb_out[2],rgb_out[2],rgb_out[2]}; // assign rgb_out to vgaBlue, vgaGreen, vgaRed
-    assign vgaGreen = {rgb_out[1],rgb_out[1],rgb_out[1]};
-    assign vgaRed = {rgb_out[0],rgb_out[0],rgb_out[0]};
+    assign vgaBlue = {rgb_out[3],rgb_out[2],rgb_out[1],rgb_out[0]}; // assign rgb_out to vgaBlue, vgaGreen, vgaRed
+    assign vgaGreen = {rgb_out[7],rgb_out[6],rgb_out[5],rgb_out[4]};
+    assign vgaRed = {rgb_out[11],rgb_out[10],rgb_out[9],rgb_out[8]};
+//    assign vgaBlue = {rgb_out[2],rgb_out[2],rgb_out[2]}; // assign rgb_out to vgaBlue, vgaGreen, vgaRed
+//    assign vgaGreen = {rgb_out[1],rgb_out[1],rgb_out[1]};
+//    assign vgaRed = {rgb_out[0],rgb_out[0],rgb_out[0]};
     
     uart keyboardUART(clk, RsRx, RsTx, movement, throwBall); // keyboard input
     gameLogic gameInstance( // main game logic and animation logic
