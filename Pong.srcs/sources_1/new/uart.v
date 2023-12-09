@@ -55,23 +55,22 @@ module uart(
             case (data_in)
                 8'h77: movement[3:2] = 2'b10; // w 1st player up
                 8'h73: movement[3:2] = 2'b01; // s 1st player down
-                8'h70: movement[1:0] = 2'b10; // 8 2nd player up
-                8'h6C: movement[1:0] = 2'b01; // 5 2nd player down
+                8'h70: movement[1:0] = 2'b10; // p 2nd player up
+                8'h6C: movement[1:0] = 2'b01; // l 2nd player down
             endcase
         end
     end
     
     always @(posedge baud) begin
         if(sent) begin // l key to throw ball
-            if(data_in == 8'h20 && lState == 1'b0) begin // l key pressed
+            if(data_in == 8'h20) begin // l key pressed
                 l = 1'b1;
                 lState = 1'b1;
             end
-            else if(data_in == 8'h20 && lState == 1'b1) begin // allow only 1 l key press (single pulse)
+            else  begin
                 l = 1'b0;
+                lState = 1'b0; // l key released
             end
-            else lState = 1'b0; // l key released
         end
     end
-    
 endmodule
