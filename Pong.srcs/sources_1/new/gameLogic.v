@@ -308,22 +308,20 @@ module gameLogic(
     end
 
     // mux
-    assign outputMux = {videoOn, displayLeftPaddle, displayRightPaddle, displayBall, displayHeart, displayPlayer1Score, displayPlayer2Score}; 
-
+    assign outputMux = {videoOn, displayLeftPaddle, displayRightPaddle, displayBall, displayPlayer1Score, displayPlayer2Score}; 
     // assign rgbNext from outputMux.
-    assign rgbNext = outputMux === 7'b1000000 ? 3'hdff: 
-                     outputMux === 7'b1100000 ? rgbLeftPaddle: 
-                     outputMux === 7'b1101000 ? rgbLeftPaddle: 
-                     outputMux === 7'b1010000 ? rgbRightPaddle: 
-                     outputMux === 7'b1011000 ? rgbRightPaddle: 
-                     outputMux === 7'b1001000 ? rgbBall:
-                     outputMux === 7'b1001001 ? rgbBall:
-                     outputMux === 7'b1001010 ? rgbBall:
-                     outputMux === 7'b1001100 ? rgbHeart:
-                     outputMux === 7'b1000010 ? rgbPlayer1Score:
-                     outputMux === 7'b1000001 ? rgbPlayer2Score:
-                     3'b000;
- 
+    assign rgbNext = outputMux === 6'b100000 ? 3'b000: 
+                    outputMux === 6'b110000 ? rgbLeftPaddle: 
+                    outputMux === 6'b110100 ? rgbLeftPaddle: 
+                    outputMux === 6'b101000 ? rgbRightPaddle: 
+                    outputMux === 6'b101100 ? rgbRightPaddle: 
+                    outputMux === 6'b100100 ? rgbBall:
+                    outputMux === 6'b100101 ? rgbBall:
+                    outputMux === 6'b100110 ? rgbBall:
+                    outputMux === 6'b100010 ? rgbPlayer1Score:
+                    outputMux === 6'b100001 ? rgbPlayer2Score:
+                    3'b000;
+                    
     // output part
     assign rgb = rgbReg; 
 
