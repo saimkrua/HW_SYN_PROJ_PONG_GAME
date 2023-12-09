@@ -1,6 +1,6 @@
 `timescale 1ns / 1ps
 
-module animationLogic(
+module gameLogic(
     input clk,
     input reset,
     input [9:0] x,
