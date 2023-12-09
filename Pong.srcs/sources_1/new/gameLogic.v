@@ -57,7 +57,12 @@ module gameLogic(
     wire player2FirstDigit; // output player 1's first digit from convertor
     wire player2SecondDigit; // output player 1's second digit from convertor
     wire[11:0] rgbPlayer2Score; // player 1's score color
-
+    
+    // Game Name
+    wire displayGameName;
+    wire gameName;
+    wire [11:0] rgbGameName; 
+    
     // Ball
     integer ballX; // the distance between the ball and left side of the screen
     integer ballNextX; // the distance between the ball and left side of the screen
@@ -279,48 +284,54 @@ module gameLogic(
 
     // display left paddle object on the screen
     assign displayLeftPaddle = y < leftPaddleY & y > leftPaddleY - paddleHeight & x > leftPaddleX & x < leftPaddleX + paddleWidth ? 1'b1 : 1'b0; 
-    assign rgbLeftPaddle = 3'h586; // color of left paddle: blue
+    assign rgbLeftPaddle = 12'b010001000000; // color of left paddle: blue
 
     // display right paddle object on the screen
     assign displayRightPaddle = y < rightPaddleY & y > rightPaddleY - paddleHeight & x > rightPaddleX & x < rightPaddleX + paddleWidth ? 1'b1 : 1'b0; 
-    assign rgbRightPaddle = 3'h001; // color of left paddle: red
+    assign rgbRightPaddle = 12'b000001000100; // color of left paddle: red
 
     // display ball object on the screen
     assign displayBall = (x-ballX)*(x-ballX) + (y-ballY)*(y-ballY) <= ballRadius*ballRadius ? 1'b1 : 1'b0;
-    assign rgbBall = 3'h111; // color of ball: white
+    assign rgbBall = 12'b111111111; // color of ball: white
 
     // display player 1 score on the screen
     assign displayPlayer1Score = x >= 80 & x < 112 & y >= 80 & y < 88; 
     numberToPixel player1FirstDigitConvertor(totalscorePlayer1[7:4], y - 80, x - 80, player1FirstDigit);
     numberToPixel player1SecondDigitConvertor(totalscorePlayer1[3:0], y - 80, x - 96, player1SecondDigit);
-    assign rgbPlayer1Score = x >= 96 ? player1SecondDigit ? 3'b111 : 3'b000
-                                    : player1FirstDigit ? 3'b111 : 3'b000; // color of score: white if that area contain number
+    assign rgbPlayer1Score = x >= 96 ? player1SecondDigit ? 12'b000000000 : 12'b111111111
+                                    : player1FirstDigit ? 12'b000000000 : 12'b111111111; // color of score: white if that area contain number
 
     // display player 2 score on the screen
     assign displayPlayer2Score = x >= 528 & x < 560 & y >= 80 & y < 88; 
     numberToPixel player2FirstDigitConvertor(totalscorePlayer2[7:4], y - 80, x - 528, player2FirstDigit);
     numberToPixel player2SecondDigitConvertor(totalscorePlayer2[3:0], y - 80, x - 544, player2SecondDigit);
-    assign rgbPlayer2Score = x >= 544 ? player2SecondDigit ? 3'b111 : 3'b000
-                                    : player2FirstDigit ? 3'b111 : 3'b000; // color of score: white if that area contain number
+    assign rgbPlayer2Score = x >= 544 ? player2SecondDigit ? 12'b000000000 : 12'b111111111
+                                    : player2FirstDigit ? 12'b000000000 : 12'b111111111; // color of score: white if that area contain number
 
+    // display game name
+    assign displayGameName = x >= 290 & x < 350 & y >= 80 & y < 88;
+    textToPixel gameNameConvertor(y - 80, x - 290, gameName);
+    assign rgbGameName = gameName ? 12'b000000000000 : 12'b111010111010;
+    
     always @(posedge clk) begin 
         rgbReg <= rgbNext;   
     end
 
     // mux
-    assign outputMux = {videoOn, displayLeftPaddle, displayRightPaddle, displayBall, displayPlayer1Score, displayPlayer2Score}; 
+    assign outputMux = {videoOn, displayLeftPaddle, displayRightPaddle, displayBall, displayPlayer1Score, displayPlayer2Score, displayGameName}; 
     // assign rgbNext from outputMux.
-    assign rgbNext = outputMux === 6'b100000 ? 3'b000: 
-                    outputMux === 6'b110000 ? rgbLeftPaddle: 
-                    outputMux === 6'b110100 ? rgbLeftPaddle: 
-                    outputMux === 6'b101000 ? rgbRightPaddle: 
-                    outputMux === 6'b101100 ? rgbRightPaddle: 
-                    outputMux === 6'b100100 ? rgbBall:
-                    outputMux === 6'b100101 ? rgbBall:
-                    outputMux === 6'b100110 ? rgbBall:
-                    outputMux === 6'b100010 ? rgbPlayer1Score:
-                    outputMux === 6'b100001 ? rgbPlayer2Score:
-                    3'b000;
+    assign rgbNext = outputMux === 7'b1000000 ? 12'b111111111111:
+                    outputMux === 7'b1100000 ? rgbLeftPaddle: 
+                    outputMux === 7'b1101000 ? rgbLeftPaddle: 
+                    outputMux === 7'b1010000 ? rgbRightPaddle: 
+                    outputMux === 7'b1011000 ? rgbRightPaddle: 
+                    outputMux === 7'b1001000 ? rgbBall:
+                    outputMux === 7'b1001010 ? rgbBall:
+                    outputMux === 7'b1001100 ? rgbBall:
+                    outputMux === 7'b1000100 ? rgbPlayer1Score:
+                    outputMux === 7'b1000010 ? rgbPlayer2Score:
+                    outputMux == 7'b1000001 ? rgbGameName:
+                    12'b100111001111;
                     
     // output part
     assign rgb = rgbReg; 

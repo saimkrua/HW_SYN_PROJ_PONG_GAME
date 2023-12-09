@@ -15,7 +15,7 @@ module main(
 
     wire [9:0] x,y;
     wire [3:0] movement;
-    wire [2:0] rgb_out;
+    wire [11:0] rgb_out;
     
     assign vgaBlue = {rgb_out[3],rgb_out[2],rgb_out[1],rgb_out[0]}; // assign rgb_out to vgaBlue, vgaGreen, vgaRed
     assign vgaGreen = {rgb_out[7],rgb_out[6],rgb_out[5],rgb_out[4]};
