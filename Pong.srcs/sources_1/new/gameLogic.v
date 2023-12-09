@@ -1,24 +1,4 @@
 `timescale 1ns / 1ps
-//////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: Thanat Wongsamut
-// 
-// Create Date: 11/06/2023 09:43:00 PM
-// Design Name: Animation Logic
-// Module Name: animationLogic
-// Project Name: Pong
-// Target Devices: BASYS3
-// Tool Versions: 
-// Description: 
-// 
-// Dependencies: 
-// 
-// Revision:
-// Revision 0.01 - File Created
-// Additional Comments:
-// 
-//////////////////////////////////////////////////////////////////////////////////
-
 
 module animationLogic(
     input clk,
@@ -26,14 +6,14 @@ module animationLogic(
     input [9:0] x,
     input [9:0] y,
     input videoOn,
-    input player1Up,
-    input player1Down,
-    input player2Up,
-    input player2Down,
+    input [3:0] movement,
     input throwBall,
-    output wire [2:0] rgb
+    output wire [11:0] rgb
 );
 
+    wire player1Up, player1Down, player2Up, player2Down; 
+    assign {player1Up,player1Down,player2Up,player2Down} = movement;
+    
     reg [7:0] totalscorePlayer1;
     reg [7:0] totalscorePlayer2;
     reg scoreCheckerPlayer1;
@@ -97,7 +77,7 @@ module animationLogic(
     wire refreshRate;
 
     // Mux to display
-    wire[5:0] outputMux;
+    wire[6:0] outputMux;
 
     // RGB buffer
     reg[2:0] rgbReg; 
@@ -306,8 +286,11 @@ module animationLogic(
     assign rgbRightPaddle = 3'b001; // color of left paddle: red
 
     // display ball object on the screen
-    assign displayBall = (x - ballX) * (x - ballX) + (y - ballY) * (y - ballY) <= ballRadius * ballRadius ? 1'b1 : 1'b0; 
+    assign displayBall = (x-ballX)*(x-ballX) + (y-ballY)*(y-ballY) <= ballRadius*ballRadius ? 1'b1 : 1'b0;
     assign rgbBall = 3'b111; // color of ball: white
+    assign displayHeart = ((x-ballX)*(x-ballX) + (y-ballY+0.2)*(y-ballY+0.2)-(0.4*ballRadius))*((x-ballX)*(x-ballX)+(y-ballY+0.2)*(y-ballY+0.2)-(0.4*ballRadius))*((x-ballX)*(x-ballX)+(y-ballY+0.2)*(y-ballY+0.2)-(0.4*ballRadius)) <= ((x-ballX)*(x-ballX))*((y-ballY+0.2)*(y-ballY+0.2)*(y-ballY+0.2)) ? 1'b1 : 1'b0; 
+    assign rgbHeart = 3'b100; // color of heart: red
+
 
     // display player 1 score on the screen
     assign displayPlayer1Score = x >= 80 & x < 112 & y >= 80 & y < 88; 
@@ -328,20 +311,21 @@ module animationLogic(
     end
 
     // mux
-    assign outputMux = {videoOn, displayLeftPaddle, displayRightPaddle, displayBall, displayPlayer1Score, displayPlayer2Score}; 
+    assign outputMux = {videoOn, displayLeftPaddle, displayRightPaddle, displayBall, displayHeart, displayPlayer1Score, displayPlayer2Score}; 
 
     // assign rgbNext from outputMux.
-    assign rgbNext = outputMux === 6'b100000 ? 3'b000: 
-                    outputMux === 6'b110000 ? rgbLeftPaddle: 
-                    outputMux === 6'b110100 ? rgbLeftPaddle: 
-                    outputMux === 6'b101000 ? rgbRightPaddle: 
-                    outputMux === 6'b101100 ? rgbRightPaddle: 
-                    outputMux === 6'b100100 ? rgbBall:
-                    outputMux === 6'b100101 ? rgbBall:
-                    outputMux === 6'b100110 ? rgbBall:
-                    outputMux === 6'b100010 ? rgbPlayer1Score:
-                    outputMux === 6'b100001 ? rgbPlayer2Score:
-                    3'b000;
+    assign rgbNext = outputMux === 7'b1000000 ? 3'b000: 
+                     outputMux === 7'b1100000 ? rgbLeftPaddle: 
+                     outputMux === 7'b1101000 ? rgbLeftPaddle: 
+                     outputMux === 7'b1010000 ? rgbRightPaddle: 
+                     outputMux === 7'b1011000 ? rgbRightPaddle: 
+                     outputMux === 7'b1001000 ? rgbBall:
+                     outputMux === 7'b1001001 ? rgbBall:
+                     outputMux === 7'b1001010 ? rgbBall:
+                     outputMux === 7'b1001100 ? rgbHeart:
+                     outputMux === 7'b1000010 ? rgbPlayer1Score:
+                     outputMux === 7'b1000001 ? rgbPlayer2Score:
+                     3'b000;
  
     // output part
     assign rgb = rgbReg; 
