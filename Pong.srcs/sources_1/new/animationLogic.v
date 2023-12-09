@@ -310,17 +310,17 @@ module animationLogic(
     assign rgbBall = 3'b111; // color of ball: white
 
     // display player 1 score on the screen
-    assign displayPlayer1Score = x >= 204 & x < 220 & y >= 80 & y < 88; 
-    numberToPixel player1FirstDigitConvertor(totalscorePlayer1[7:4], y - 80, x - 204, player1FirstDigit);
-    numberToPixel player1SecondDigitConvertor(totalscorePlayer1[3:0], y - 80, x - 212, player1SecondDigit);
-    assign rgbPlayer1Score = x >= 212 ? player1SecondDigit ? 3'b111 : 3'b000
+    assign displayPlayer1Score = x >= 80 & x < 112 & y >= 80 & y < 88; 
+    numberToPixel player1FirstDigitConvertor(totalscorePlayer1[7:4], y - 80, x - 80, player1FirstDigit);
+    numberToPixel player1SecondDigitConvertor(totalscorePlayer1[3:0], y - 80, x - 96, player1SecondDigit);
+    assign rgbPlayer1Score = x >= 96 ? player1SecondDigit ? 3'b111 : 3'b000
                                     : player1FirstDigit ? 3'b111 : 3'b000; // color of score: white if that area contain number
 
     // display player 2 score on the screen
-    assign displayPlayer2Score = x >= 420 & x < 436 & y >= 80 & y < 88; 
-    numberToPixel player2FirstDigitConvertor(totalscorePlayer2[7:4], y - 80, x - 420, player2FirstDigit);
-    numberToPixel player2SecondDigitConvertor(totalscorePlayer2[3:0], y - 80, x - 428, player2SecondDigit);
-    assign rgbPlayer2Score = x >= 428 ? player2SecondDigit ? 3'b111 : 3'b000
+    assign displayPlayer2Score = x >= 528 & x < 560 & y >= 80 & y < 88; 
+    numberToPixel player2FirstDigitConvertor(totalscorePlayer2[7:4], y - 80, x - 528, player2FirstDigit);
+    numberToPixel player2SecondDigitConvertor(totalscorePlayer2[3:0], y - 80, x - 544, player2SecondDigit);
+    assign rgbPlayer2Score = x >= 544 ? player2SecondDigit ? 3'b111 : 3'b000
                                     : player2FirstDigit ? 3'b111 : 3'b000; // color of score: white if that area contain number
 
     always @(posedge clk) begin 
