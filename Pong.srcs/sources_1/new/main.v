@@ -12,16 +12,11 @@ module main(
     output wire Hsync,
     output wire Vsync
     );
-    
-//    reg [7:0] player1Score;
-//    reg [7:0] player2Score;
 
     wire [9:0] x,y;
     wire player1Up, player1Down, player2Up, player2Down, throwBall;
     wire [4:0] wsplspace;
     wire [2:0] rgb_out;
-//    wire scorePlayer1Count;
-//    wire scorePlayer2Count;
     
     assign {player1Up,player1Down,player2Up,player2Down,throwBall} = wsplspace; // assign wsplspace to player1Up, player1Down, player2Up, player2Down, throwBall
 //    assign vgaBlue = {rgb_out[3],rgb_out[2],rgb_out[1],rgb_out[0]}; // assign rgb_out to vgaBlue, vgaGreen, vgaRed

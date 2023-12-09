@@ -31,11 +31,7 @@ module animationLogic(
     input player2Up,
     input player2Down,
     input throwBall,
-//    input [7:0] totalscorePlayer1,
-//    input [7:0] totalscorePlayer2,
     output wire [2:0] rgb
-//    output wire scorePlayer1,
-//    output wire scorePlayer2
 );
 
     reg [7:0] totalscorePlayer1;
@@ -349,8 +345,6 @@ module animationLogic(
  
     // output part
     assign rgb = rgbReg; 
-//    assign scorePlayer1 = scoreCheckerPlayer1; 
-//    assign scorePlayer2 = scoreCheckerPlayer2; 
 
     // score management
     always @(posedge clk)
@@ -359,7 +353,7 @@ module animationLogic(
             totalscorePlayer1 = 8'd0; // reset score player1
             totalscorePlayer2 = 8'd0; // reset score player2
         end
-        else if (scoreCheckerPlayer1 == 1) begin // if player1 score count is 1 then add player1 score
+        else if (scoreCheckerPlayer1 == 1 && !throwBall) begin // if player1 score count is 1 then add player1 score
             if(totalscorePlayer1[3:0] < 4'd9) totalscorePlayer1[3:0] = totalscorePlayer1[3:0] + 1;
             else begin
                 if(totalscorePlayer1[7:4] < 4'd9) // If player1 1's unit digit score is 9, then add 1 to the tens and set 1s to 0
@@ -369,7 +363,7 @@ module animationLogic(
                 end
             end
         end
-        else if (scoreCheckerPlayer2 == 1) begin // if player2 score count is 1 then add player2 score
+        else if (scoreCheckerPlayer2 == 1 && !throwBall) begin // if player2 score count is 1 then add player2 score
             if(totalscorePlayer2[3:0] < 4'd9) totalscorePlayer2[3:0] = totalscorePlayer2[3:0] + 1;
             else begin
                 if(totalscorePlayer2[7:4] < 4'd9) // If player2 1's unit digit score is 9, then add 1 to the tens and set 1s to 0
