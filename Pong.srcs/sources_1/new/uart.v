@@ -12,7 +12,6 @@ module uart(
     reg [7:0] data_in;
     reg [3:0] movement = 4'b0000; // player1Up, player1Down, player2Up, player2Down
     reg throw = 1'b0; // throw
-    reg throwState = 1'b0; // throw state
     wire [7:0] data_out;
     wire sent, received, baud;
     
@@ -32,6 +31,7 @@ module uart(
         last_rec = received;
     end
     
+    /*movement*/
     always @(posedge sent) begin
         if (sent) begin
             case (data_in)
@@ -44,16 +44,11 @@ module uart(
     end
     
     /*throw ball*/
-    always @(posedge baud) begin
+    always @(posedge sent) begin
         if(sent) begin 
-            if(data_in == 8'h20) begin // space pressed
-                throw = 1'b1;
-                throwState = 1'b1;
-            end
-            else  begin
-                throw = 1'b0;
-                throwState = 1'b0; // space released
-            end
+            if(data_in == 8'h20) throw = 1'b1; // space pressed
+            else throw = 1'b0; // space released
         end
     end
+    
 endmodule
