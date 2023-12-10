@@ -33,22 +33,22 @@ module gameLogic(
     parameter ballDefaultX = 300; // default x ball
     parameter ballDefaultY = 300; // default y ball
     parameter ballRadius   = 8;  // ball radius
-    parameter ballSpeedX       = 2;  // x ball speed
-    parameter ballSpeedY       = 2;  // y ball speed
+    parameter ballSpeedX   = 2;  // x ball speed
+    parameter ballSpeedY   = 2;  // y ball speed
     /*================================================================*/
 
     /*======================= Color =============================*/
-    parameter white  = 12'b111111111111;
-    parameter purple = 12'b001100000100;
-    parameter yellow = 12'b110010011001;
-    parameter text   = 12'b000000000010;
-    parameter blue   = 12'b000010001000;
-    parameter red    = 12'b100101011001;
+    parameter white     = 12'b111111111111;
+    parameter bgColor   = 12'b101011001011;
+    parameter ballColor = 12'b110001110000;
+    parameter textColor = 12'b000001010101;
+    parameter blue      = 12'b011010011111;
+    parameter red       = 12'b100101011000;
     /*================================================================*/
 
     /*======================= Left Player =============================*/
     // paddle
-    parameter leftPaddleX = 40;
+    parameter leftPaddleX = 72;
     integer   leftPaddleY;
     integer   leftPaddleYNext;
     wire displayLeftPaddle;
@@ -62,7 +62,7 @@ module gameLogic(
     
     /*======================= Right Player =============================*/
     // paddle
-    parameter rightPaddleX = 600; 
+    parameter rightPaddleX = 560; 
     integer   rightPaddleY; 
     integer   rightPaddleYNext; 
     wire displayRightPaddle;
@@ -111,20 +111,20 @@ module gameLogic(
 
     /*======================= Initial =============================*/
     initial begin
-        speedY  = 0;
+        speedY     = 0;
         speedYNext = 0;
-        speedX  = 0;
+        speedX     = 0;
         speedXNext = 0;
         
-        ballX      = 300;
-        ballXNext  = 300;
-        ballY      = 300;
-        ballYNext  = 300;
+        ballX      = 320;
+        ballXNext  = 320;
+        ballY      = 240;
+        ballYNext  = 240;
 
-        leftPaddleY      = 380;
-        leftPaddleYNext  = 380;
-        rightPaddleY     = 380;
-        rightPaddleYNext = 380;
+        leftPaddleY      = 340;
+        leftPaddleYNext  = 340;
+        rightPaddleY     = 340;
+        rightPaddleYNext = 340;
     end
 
    
@@ -209,13 +209,13 @@ module gameLogic(
                 speedXNext <= -1 * ballSpeedX; // set the direction of horizontal speed negative
             end
 
-            if (ballY <= ballRadius) 
+            if (ballY < 9) 
             begin
                 // if ball hits the top side of the screen
                 speedYNext <= ballSpeedY; // set the direction of vertical speed positive
             end
 
-            if (ballY >= 480 - ballRadius) 
+            if (ballY > 471) 
             begin
                 // if ball hits the top side of the screen
                 speedYNext <= -1 * ballSpeedY; // set the direction of vertical speed negative
@@ -224,7 +224,7 @@ module gameLogic(
             ballXNext <= ballX + speedX; // move the ball's horizontal location   
             ballYNext <= ballY + speedY; // move the ball's vertical location
            
-            if (ballX >= 640 - ballRadius) 
+            if (ballX >= 630) 
             begin
                 // if player 1 scores, ball passes through the horizontal location of right paddle.
                 
@@ -245,7 +245,7 @@ module gameLogic(
                 scoreCheckerLeft <= 1'b0;   
             end
 
-            if (ballX <= ballRadius) 
+            if (ballX <= 8) 
             begin
                 // if player 2 scores, ball passes through the horizontal location of left paddle.
                 
@@ -281,13 +281,13 @@ module gameLogic(
                                 
     assign displayBall = (x-ballX)*(x-ballX) + (y-ballY)*(y-ballY) <= ballRadius*ballRadius ? 1'b1 : 1'b0;
    
-    assign displayLeftScore = x >= 80 & x < 112 & y >= 80 & y < 88; 
-    numberToPixel leftScoreFirstDigitConvertor(totalLeftScore[7:4], y - 80, x - 80, leftScoreFirstDigit);
-    numberToPixel leftScoreSecondDigitCfonvertor(totalLeftScore[3:0], y - 80, x - 96, leftScoreSecondDigit);
+    assign displayLeftScore = x >= 80 & x < 112 & y >= 236 & y < 244; 
+    numberToPixel leftScoreFirstDigitConvertor(totalLeftScore[7:4], y - 236, x - 80, leftScoreFirstDigit);
+    numberToPixel leftScoreSecondDigitCfonvertor(totalLeftScore[3:0], y - 236, x - 96, leftScoreSecondDigit);
     
-    assign displayRightScore = x >= 528 & x < 560 & y >= 80 & y < 88; 
-    numberToPixel rightFirstDigitConvertor(totalRightScore[7:4], y - 80, x - 528, rightFirstDigit);
-    numberToPixel rightSecondDigitConvertor(totalRightScore[3:0], y - 80, x - 544, rightSecondDigit);
+    assign displayRightScore = x >= 528 & x < 560 & y >= 236 & y < 244; 
+    numberToPixel rightFirstDigitConvertor(totalRightScore[7:4], y - 236, x - 528, rightFirstDigit);
+    numberToPixel rightSecondDigitConvertor(totalRightScore[3:0], y - 236, x - 544, rightSecondDigit);
     
     assign displayGameName = x >= 290 & x < 350 & y >= 80 & y < 88;
     textToPixel gameNameConvertor(y - 80, x - 290, gameName);
@@ -295,12 +295,12 @@ module gameLogic(
     /*======================= Color =============================*/
     assign rgbLeftPaddle = blue;
     assign rgbRightPaddle = red;
-    assign rgbBall = yellow;
-    assign rgbLeftScore = x >= 96 ? leftScoreSecondDigit ? text : purple
-                                     : leftScoreFirstDigit ? text : purple;
-    assign rgbRightScore = x >= 544 ? rightSecondDigit ? text : purple
-                                      : rightFirstDigit ? text : purple;
-    assign rgbGameName = gameName ? text : purple;
+    assign rgbBall = ballColor;
+    assign rgbLeftScore = x >= 96 ? leftScoreSecondDigit ? textColor : bgColor
+                                     : leftScoreFirstDigit ? textColor : bgColor;
+    assign rgbRightScore = x >= 544 ? rightSecondDigit ? textColor : bgColor
+                                      : rightFirstDigit ? textColor : bgColor;
+    assign rgbGameName = gameName ? textColor : bgColor;
     
     /*======================= Next State =============================*/
     always @(posedge clk) begin
@@ -355,7 +355,7 @@ module gameLogic(
     end
 
     assign outputMux = {videoOn, displayLeftPaddle, displayRightPaddle, displayBall, displayLeftScore, displayRightScore, displayGameName}; 
-    assign rgbNext = outputMux === 7'b1000000 ? purple:
+    assign rgbNext = outputMux === 7'b1000000 ? bgColor:
                      outputMux === 7'b1100000 ? rgbLeftPaddle: 
                      outputMux === 7'b1101000 ? rgbLeftPaddle: 
                      outputMux === 7'b1010000 ? rgbRightPaddle: 
@@ -363,6 +363,7 @@ module gameLogic(
                      outputMux === 7'b1001000 ? rgbBall:
                      outputMux === 7'b1001010 ? rgbBall:
                      outputMux === 7'b1001100 ? rgbBall:
+                     outputMux === 7'b1001001 ? rgbBall:
                      outputMux === 7'b1000100 ? rgbLeftScore:
                      outputMux === 7'b1000010 ? rgbRightScore:
                      outputMux === 7'b1000001 ? rgbGameName:

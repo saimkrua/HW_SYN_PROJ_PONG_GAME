@@ -4,6 +4,7 @@ module main(
     input clk,
     input RsRx,
     input btnU,
+    input [11:0] sw,
     output RsTx,
     output wire [3:0] vgaRed,
     output wire [3:0] vgaGreen,
@@ -27,7 +28,7 @@ module main(
     /*======================= GAME INSTANCE =============================*/
     gameLogic gameInstance(
         clk,            // in : clock
-        btnU,           // in : reset
+        {btnU || sw[0]},// in : reset
         x,              // in : position x from vga
         y,              // in : position y from vga
         video_on,       // in : show video from vga
@@ -36,6 +37,7 @@ module main(
         rgb_out,        // out : for output 
         scorePlayer1,   // out : for 7 seg
         scorePlayer2    // out : for 7 seg
+        
     );
     /*================================================================*/
     
