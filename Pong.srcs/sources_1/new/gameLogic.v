@@ -247,13 +247,13 @@ module gameLogic(
                 velocityXNext <= -velocityX; // set the direction of horizontal velocity negative
             end
 
-            if (ballY < 9) 
+            if (ballY <= ballRadius) 
             begin
                 // if ball hits the top side of the screen
                 velocityYNext <= velocityY; // set the direction of vertical velocity positive
             end
 
-            if (ballY > 471) 
+            if (ballY >= 480 - ballRadius) 
             begin
                 // if ball hits the top side of the screen
                 velocityYNext <= -velocityY; // set the direction of vertical velocity negative
@@ -262,7 +262,7 @@ module gameLogic(
             ballNextX <= ballX + velocityXReg; // move the ball's horizontal location   
             ballNextY <= ballY + velocityYReg; // move the ball's vertical location
            
-            if (ballX >= 630) 
+            if (ballX >= 640 - ballRadius) 
             begin
                 // if player 1 scores, ball passes through the horizontal location of right paddle.
                 
@@ -283,7 +283,7 @@ module gameLogic(
                 scoreCheckerPlayer1 <= 1'b0;   
             end
 
-            if (ballX <= 8) 
+            if (ballX <= ballRadius) 
             begin
                 // if player 2 scores, ball passes through the horizontal location of left paddle.
                 
