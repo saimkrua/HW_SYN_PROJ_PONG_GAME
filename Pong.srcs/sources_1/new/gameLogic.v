@@ -39,7 +39,7 @@ module gameLogic(
 
     /*======================= Color =============================*/
     parameter white     = 12'b111111111111;
-    parameter bgColor   = 12'b101011001011;
+    parameter bgColor   = 12'b100110111001;
     parameter ballColor = 12'b110001110000;
     parameter textColor = 12'b000001010101;
     parameter blue      = 12'b011010011111;
