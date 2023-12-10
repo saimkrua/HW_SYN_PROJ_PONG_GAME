@@ -9,224 +9,186 @@ module gameLogic(
     input [3:0] movement,
     input throwBall,
     output wire [11:0] rgb,
-    output wire [7:0] scorePlayer1,
-    output wire [7:0] scorePlayer2
+    output wire [7:0] leftScore,
+    output wire [7:0] rightScore
 );
 
-    wire player1Up, player1Down, player2Up, player2Down; 
-    assign {player1Up,player1Down,player2Up,player2Down} = movement;
+    wire leftUp, leftDown, rightUp, rightDown; 
+    assign {leftUp,leftDown,rightUp,rightDown} = movement;
     
-    reg [7:0] totalscorePlayer1;
-    reg [7:0] totalscorePlayer2;
-    reg scoreCheckerPlayer1;
-    reg scoreCheckerPlayer2;
+    reg [7:0] totalLeftScore;
+    reg [7:0] totalRightScore;
+    reg scoreCheckerLeft;
+    reg scoreCheckerRight;
     reg scorer; 
     reg scorerNext;
 
-    // Parameter
-    parameter paddleWidth = 10; // paddle width
-    parameter paddleHeight = 120; // paddle height
-    parameter paddleVelocity = 5; // paddle velocity
+    /*======================= Paddle =============================*/
+    parameter paddleWidth  = 8; // paddle width
+    parameter paddleHeight = 200; // paddle height
+    parameter paddleSpeed  = 4; // paddle speed
+    /*================================================================*/
     
-    parameter light_blue = 12'b101011001110;
-    parameter purple     = 12'b011001001001;
-    parameter rose       = 12'b110001010101;
-    parameter yellow     = 12'b111111010101;
-    parameter dark_blue  = 12'b000100100100;
-    parameter green      = 12'b010010011001;
-    
-    // 0,0 left,top
+    /*======================= Ball =============================*/
     parameter ballDefaultX = 300; // default x ball
     parameter ballDefaultY = 300; // default y ball
     parameter ballRadius   = 8;  // ball radius
-    parameter velocityX    = 2;  // x ball velocity
-    parameter velocityY    = 2;  // y ball velocity
+    parameter ballSpeedX       = 2;  // x ball speed
+    parameter ballSpeedY       = 2;  // y ball speed
+    /*================================================================*/
 
-    // Player 1
-    integer   leftPaddleY; // the distance between paddle and top side of screen
-    integer   leftPaddleNextY; // the distance between paddle and top side of screen
-    parameter leftPaddleX = 20; // the distance between bar and left side of screen
-    wire displayLeftPaddle; // to display player 1's paddle in vga
-    wire [11:0] rgbLeftPaddle; // player 1's paddle color
+    /*======================= Color =============================*/
+    parameter white  = 12'b111111111111;
+    parameter purple = 12'b001100000100;
+    parameter yellow = 12'b110010011001;
+    parameter text   = 12'b000000000010;
+    parameter blue   = 12'b000010001000;
+    parameter red    = 12'b100101011001;
+    /*================================================================*/
 
-    // Player 1' score
-    wire displayPlayer1Score; // to display player 1's score
-    wire player1FirstDigit; // output player 1's first digit from convertor
-    wire player1SecondDigit; // output player 1's second digit from convertor
-    wire [11:0] rgbPlayer1Score; // player 1's score color
-
-    // Player 2
-    integer   rightPaddleY; // the distance between paddle and top side of screen
-    integer   rightPaddleNextY; // the distance between paddle and top side of screen
-    parameter rightPaddleX = 610; // the distance between bar and left side of screen
-    wire displayRightPaddle; // to display player 2's paddle in vga
-    wire [11:0] rgbRightPaddle; // player 2's paddle color
-
-    // Player 2' score
-    wire displayPlayer2Score; // to display player 1's score
-    wire player2FirstDigit; // output player 1's first digit from convertor
-    wire player2SecondDigit; // output player 1's second digit from convertor
-    wire [11:0] rgbPlayer2Score; // player 1's score color
+    /*======================= Left Player =============================*/
+    // paddle
+    parameter leftPaddleX = 40;
+    integer   leftPaddleY;
+    integer   leftPaddleYNext;
+    wire displayLeftPaddle;
+    wire [11:0] rgbLeftPaddle;
+    // score
+    wire displayLeftScore;
+    wire leftScoreFirstDigit; 
+    wire leftScoreSecondDigit;
+    wire [11:0] rgbLeftScore;
+    /*================================================================*/
     
-    // Game Name
+    /*======================= Right Player =============================*/
+    // paddle
+    parameter rightPaddleX = 600; 
+    integer   rightPaddleY; 
+    integer   rightPaddleYNext; 
+    wire displayRightPaddle;
+    wire [11:0] rgbRightPaddle;
+
+    // score
+    wire displayRightScore; 
+    wire rightScoreFirstDigit; 
+    wire rightScoreSecondDigit; 
+    wire [11:0] rgbRightScore;
+    /*================================================================*/
+
+    
+    /*======================= Game name =============================*/
     wire displayGameName;
     wire gameName;
     wire [11:0] rgbGameName; 
     
-    // Ball
-    integer ballX; // the distance between the ball and left side of the screen
-    integer ballNextX; // the distance between the ball and left side of the screen
-    integer ballY; // the distance between the ball and top side of the screen
-    integer ballNextY; // the distance between the ball and top side of the screen
-    integer velocityXReg; // current horizontal velocity of the ball
-    integer velocityXNext; // next horizontal velocity of the ball
-    integer velocityYReg; // current vertical velocity of the ball
-    integer velocityYNext; // next vertical velocity of the ball
-    wire displayBall; // to display ball in vga
-    wire [11:0] rgbBall; // ball color
+    /*======================= Ball =============================*/
+    // the distance between the ball and left side of the screen
+    integer ballX;
+    integer ballXNext;
+    // the distance between the ball and top side of the screen
+    integer ballY;
+    integer ballYNext;
+    // the horizontal speed of the ball
+    integer speedX; 
+    integer speedXNext;
+    // the vertical speed of the 
+    integer speedY;
+    integer speedYNext;
+    // display
+    wire displayBall; 
+    wire [11:0] rgbBall;
 
-    // FPS
+    /*======================= Monitor =============================*/
     reg  [19:0] refreshReg;
     wire [19:0] refreshNext;
     parameter   refreshConstant = 830000;
     wire refreshRate;
 
-    // Display mux
-    wire [6:0] outputMux;
+    wire [6:0] outputMux; // Display mux
 
-    // RGB buffer
-    reg  [11:0]  rgbReg; 
+    reg  [11:0] rgbReg; 
     wire [11:0] rgbNext; 
 
-    // Init
+    /*======================= Initial =============================*/
     initial begin
-        velocityYReg  = 0;
-        velocityYNext = 0;
-        velocityXReg  = 0;
-        velocityXNext = 0;
+        speedY  = 0;
+        speedYNext = 0;
+        speedX  = 0;
+        speedXNext = 0;
         
-        ballX     = 300;
-        ballNextX = 300;
-        ballY     = 300;
-        ballNextY = 300;
+        ballX      = 300;
+        ballXNext  = 300;
+        ballY      = 300;
+        ballYNext  = 300;
 
         leftPaddleY      = 380;
-        leftPaddleNextY  = 380;
+        leftPaddleYNext  = 380;
         rightPaddleY     = 380;
-        rightPaddleNextY = 380;
+        rightPaddleYNext = 380;
     end
 
-    // Refresh
-    always @(posedge clk) begin
-        refreshReg <= refreshNext;   
-    end
-
-    // refresh logics
-    assign refreshNext = refreshReg === refreshConstant ? 0 : refreshReg + 1; 
-    assign refreshRate = refreshReg === 0 ? 1'b1 : 1'b0; 
-
-    // Register part
-    always @(posedge clk or posedge reset) begin
-        if (reset === 1'b1) begin
-            // to reset the game
-            ballX        <= ballDefaultX;
-            ballY        <= ballDefaultY;
-            leftPaddleY  <= 380;
-            rightPaddleY <= 380;
-            velocityXReg <= 0;
-            velocityYReg <= 0;
-        end
-        else 
-        begin
-            velocityXReg <= velocityXNext; // assigns horizontal velocity
-            velocityYReg <= velocityYNext; // assigns vertical velocity
-
-            if (throwBall === 1'b1) 
-            begin
-                if (scorer === 1'b0) 
-                begin
-                    // if scorer is player 2 throw the ball to player 1.
-                    velocityXReg <= -velocityX;
-                    velocityYReg <= 1;
-                end
-                else
-                begin
-                    // if scorer is player 1 throw the ball to player 2.
-                    velocityXReg <= velocityX;
-                    velocityYReg <= 1;
-                end
-            end
-
-            ballX <= ballNextX; // assigns the next value of the ball's location from the left side of the screen to it's location.
-            ballY <= ballNextY; // assigns the next value of the ball's location from the top side of the screen to it's location.  
-            leftPaddleY <= leftPaddleNextY; // assigns the next value of the left paddle's location from the top side of the screen to it's location.
-            rightPaddleY <= rightPaddleNextY; // assigns the next value of the right paddle's location from the top side of the screen to it's location.
-            scorer <= scorerNext;
-        end
-    end
-
-
-    // Player 1 animation
-    always @(leftPaddleY or refreshRate or player1Up or player1Down) begin
-        leftPaddleNextY <= leftPaddleY; // assign leftPaddleY to it's next value   
+   
+    /*======================= Left animation =============================*/
+    always @(leftPaddleY or refreshRate or leftUp or leftDown) begin
+        leftPaddleYNext <= leftPaddleY; // assign leftPaddleY to it's next value   
         if (refreshRate === 1'b1) 
         begin
-            if (player1Up === 1'b1 & leftPaddleY - paddleHeight > paddleVelocity) 
+            if (leftUp === 1'b1 & leftPaddleY - paddleHeight > paddleSpeed) 
             begin 
                 // up button is pressed and paddle can move to up, which mean paddle is not on the top side of the screen.
-                leftPaddleNextY <= leftPaddleY - paddleVelocity; // move paddle to the up   
+                leftPaddleYNext <= leftPaddleY - paddleSpeed; // move paddle to the up   
             end
 
-            else if (player1Down === 1'b1 & leftPaddleY < 500) 
+            else if (leftDown === 1'b1 & leftPaddleY < 500) 
             begin
                 // down button is pressed and paddle can move down, which mean paddle is not on the bottom side of the screen
-                leftPaddleNextY <= leftPaddleY + paddleVelocity;   // move paddle to the down.
+                leftPaddleYNext <= leftPaddleY + paddleSpeed;   // move paddle to the down.
             end
 
             else 
             begin
-                leftPaddleNextY <= leftPaddleY;   
+                leftPaddleYNext <= leftPaddleY;   
             end
         end
     end
 
-    // Player 2 animation
-    always @(rightPaddleY or refreshRate or player2Up or player2Down) 
+    /*======================= Right animation =============================*/
+    always @(rightPaddleY or refreshRate or rightUp or rightDown) 
     begin
-        rightPaddleNextY <= rightPaddleY; // assign rightPaddleY to it's next value   
+        rightPaddleYNext <= rightPaddleY; // assign rightPaddleY to it's next value   
         if (refreshRate === 1'b1) 
         begin
-            if (player2Up === 1'b1 & rightPaddleY - paddleHeight > paddleVelocity) 
+            if (rightUp === 1'b1 & rightPaddleY - paddleHeight > paddleSpeed) 
             begin 
                 // up button is pressed and paddle can move to up, which mean paddle is not on the top side of the screen.
-                rightPaddleNextY <= rightPaddleY - paddleVelocity; // move paddle to the up   
+                rightPaddleYNext <= rightPaddleY - paddleSpeed; // move paddle to the up   
             end
 
-            else if (player2Down === 1'b1 & rightPaddleY < 500) 
+            else if (rightDown === 1'b1 & rightPaddleY < 500) 
             begin
                 // down button is pressed and paddle can move down, which mean paddle is not on the bottom side of the screen
-                rightPaddleNextY <= rightPaddleY + paddleVelocity;   // move paddle to the down.
+                rightPaddleYNext <= rightPaddleY + paddleSpeed;   // move paddle to the down.
             end
 
             else 
             begin
-                rightPaddleNextY <= rightPaddleY;   
+                rightPaddleYNext <= rightPaddleY;   
             end
         end
     end
 
-    // Ball animation
-    always @(refreshRate or ballX or ballY or velocityXReg or velocityYReg) 
+    /*======================= Ball animation =============================*/
+    always @(refreshRate or ballX or ballY or speedX or speedY) 
     begin
-        ballNextX <= ballX;
-        ballNextY <= ballY;
+        ballXNext <= ballX;
+        ballYNext <= ballY;
 
-        velocityXNext <= velocityXReg;
-        velocityYNext <= velocityYReg;
+        speedXNext <= speedX;
+        speedYNext <= speedY;
 
         scorerNext <= scorer;
-        scoreCheckerPlayer1 <= 1'b0; // player 1 did not scored, default value
-        scoreCheckerPlayer2 <= 1'b0; // player 2 did not scored, default value
+        scoreCheckerLeft <= 1'b0; // player 1 did not scored, default value
+        scoreCheckerRight <= 1'b0; // player 2 did not scored, default value
 
         if (refreshRate === 1'b1) begin
             if (ballY <= leftPaddleY & 
@@ -235,7 +197,7 @@ module gameLogic(
                 ballX > leftPaddleX + ballRadius) 
             begin
                 // if ball hits the left paddle
-                velocityXNext <= velocityX; // set the direction of horizontal velocity positive
+                speedXNext <= ballSpeedX; // set the direction of horizontal speed positive
             end
 
             if (ballY <= rightPaddleY & 
@@ -244,43 +206,43 @@ module gameLogic(
                 ballX < rightPaddleX + paddleWidth - ballRadius) 
             begin
                 // if ball hits the right paddle
-                velocityXNext <= -velocityX; // set the direction of horizontal velocity negative
+                speedXNext <= -1 * ballSpeedX; // set the direction of horizontal speed negative
             end
 
             if (ballY < 9) 
             begin
                 // if ball hits the top side of the screen
-                velocityYNext <= velocityY; // set the direction of vertical velocity positive
+                speedYNext <= ballSpeedY; // set the direction of vertical speed positive
             end
 
             if (ballY > 471) 
             begin
                 // if ball hits the top side of the screen
-                velocityYNext <= -velocityY; // set the direction of vertical velocity negative
+                speedYNext <= -1 * ballSpeedY; // set the direction of vertical speed negative
             end
             
-            ballNextX <= ballX + velocityXReg; // move the ball's horizontal location   
-            ballNextY <= ballY + velocityYReg; // move the ball's vertical location
+            ballXNext <= ballX + speedX; // move the ball's horizontal location   
+            ballYNext <= ballY + speedY; // move the ball's vertical location
            
             if (ballX >= 630) 
             begin
                 // if player 1 scores, ball passes through the horizontal location of right paddle.
                 
                 //reset the ball's location to its default
-                ballNextX <= ballDefaultX;
-                ballNextY <= ballDefaultY;
+                ballXNext <= ballDefaultX;
+                ballYNext <= ballDefaultY;
 
                 // stop the ball
-                velocityXNext <= 0;
-                velocityYNext <= 0;
+                speedXNext <= 0;
+                speedYNext <= 0;
 
                 // player 1 scored
                 scorerNext <= 1'b0;
-                scoreCheckerPlayer1 <= 1'b1;
+                scoreCheckerLeft <= 1'b1;
             end
             else
             begin
-                scoreCheckerPlayer1 <= 1'b0;   
+                scoreCheckerLeft <= 1'b0;   
             end
 
             if (ballX <= 8) 
@@ -288,70 +250,112 @@ module gameLogic(
                 // if player 2 scores, ball passes through the horizontal location of left paddle.
                 
                 //reset the ball's location to its default
-                ballNextX <= ballDefaultX;
-                ballNextY <= ballDefaultY;
+                ballXNext <= ballDefaultX;
+                ballYNext <= ballDefaultY;
 
                 // stop the ball
-                velocityXNext <= 0;
-                velocityYNext <= 0;
+                speedXNext <= 0;
+                speedYNext <= 0;
 
                 // player 1 scored
                 scorerNext <= 1'b1;
-                scoreCheckerPlayer2 <= 1'b1;
+                scoreCheckerRight <= 1'b1;
             end
             else 
             begin
-                scoreCheckerPlayer2 <= 1'b0;   
+                scoreCheckerRight <= 1'b0;   
             end
         end
     end
 
-    // display left paddle object on the screen
+    /*======================= Display =============================*/
     assign displayLeftPaddle = y < leftPaddleY & 
                                y > leftPaddleY - paddleHeight & 
                                x > leftPaddleX & 
                                x < leftPaddleX + paddleWidth ? 1'b1 : 1'b0; 
-    assign rgbLeftPaddle = green;
 
-    // display right paddle object on the screen
     assign displayRightPaddle = y < rightPaddleY & 
                                 y > rightPaddleY - paddleHeight & 
                                 x > rightPaddleX & 
                                 x < rightPaddleX + paddleWidth ? 1'b1 : 1'b0; 
-    assign rgbRightPaddle = green;
-
-    // display ball object on the screen
+                                
     assign displayBall = (x-ballX)*(x-ballX) + (y-ballY)*(y-ballY) <= ballRadius*ballRadius ? 1'b1 : 1'b0;
-    assign rgbBall = rose;
-
-    // display player 1 score on the screen
-    assign displayPlayer1Score = x >= 80 & x < 112 & y >= 80 & y < 88; 
-    numberToPixel player1FirstDigitConvertor(totalscorePlayer1[7:4], y - 80, x - 80, player1FirstDigit);
-    numberToPixel player1SecondDigitConvertor(totalscorePlayer1[3:0], y - 80, x - 96, player1SecondDigit);
-    assign rgbPlayer1Score = x >= 96 ? player1SecondDigit ? dark_blue : light_blue
-                                     : player1FirstDigit ? dark_blue : light_blue;
-
-    // display player 2 score on the screen
-    assign displayPlayer2Score = x >= 528 & x < 560 & y >= 80 & y < 88; 
-    numberToPixel player2FirstDigitConvertor(totalscorePlayer2[7:4], y - 80, x - 528, player2FirstDigit);
-    numberToPixel player2SecondDigitConvertor(totalscorePlayer2[3:0], y - 80, x - 544, player2SecondDigit);
-    assign rgbPlayer2Score = x >= 544 ? player2SecondDigit ? dark_blue : light_blue
-                                      : player2FirstDigit ? dark_blue : light_blue;
-
-    // display game name
+   
+    assign displayLeftScore = x >= 80 & x < 112 & y >= 80 & y < 88; 
+    numberToPixel leftScoreFirstDigitConvertor(totalLeftScore[7:4], y - 80, x - 80, leftScoreFirstDigit);
+    numberToPixel leftScoreSecondDigitCfonvertor(totalLeftScore[3:0], y - 80, x - 96, leftScoreSecondDigit);
+    
+    assign displayRightScore = x >= 528 & x < 560 & y >= 80 & y < 88; 
+    numberToPixel rightFirstDigitConvertor(totalRightScore[7:4], y - 80, x - 528, rightFirstDigit);
+    numberToPixel rightSecondDigitConvertor(totalRightScore[3:0], y - 80, x - 544, rightSecondDigit);
+    
     assign displayGameName = x >= 290 & x < 350 & y >= 80 & y < 88;
     textToPixel gameNameConvertor(y - 80, x - 290, gameName);
-    assign rgbGameName = gameName ? dark_blue : light_blue;
     
+    /*======================= Color =============================*/
+    assign rgbLeftPaddle = blue;
+    assign rgbRightPaddle = red;
+    assign rgbBall = yellow;
+    assign rgbLeftScore = x >= 96 ? leftScoreSecondDigit ? text : purple
+                                     : leftScoreFirstDigit ? text : purple;
+    assign rgbRightScore = x >= 544 ? rightSecondDigit ? text : purple
+                                      : rightFirstDigit ? text : purple;
+    assign rgbGameName = gameName ? text : purple;
+    
+    /*======================= Next State =============================*/
+    always @(posedge clk) begin
+        refreshReg <= refreshNext;   
+    end
+
+    assign refreshNext = refreshReg === refreshConstant ? 0 : refreshReg + 1; 
+    assign refreshRate = refreshReg === 0 ? 1'b1 : 1'b0; 
+
+    always @(posedge clk or posedge reset) begin
+        if (reset === 1'b1) begin
+            // to reset the game
+            ballX        <= ballDefaultX;
+            ballY        <= ballDefaultY;
+            leftPaddleY  <= 380;
+            rightPaddleY <= 380;
+            speedX       <= 0;
+            speedY       <= 0;
+        end
+        else 
+        begin
+            speedX <= speedXNext; // assigns horizontal speed
+            speedY <= speedYNext; // assigns vertical speed
+            if (throwBall === 1'b1) 
+            begin
+                if (scorer === 1'b0) 
+                begin
+                    // if scorer is player 2 throw the ball to player 1.
+                    speedX <= -1 * ballSpeedX;
+                    speedY <= 1;
+                end
+                else
+                begin
+                    // if scorer is player 1 throw the ball to player 2.
+                    speedX <= ballSpeedX;
+                    speedY <= 1;
+                end
+            end
+
+            ballX        <= ballXNext; // assigns the next value of the ball's location from the left side of the screen to it's location.
+            ballY        <= ballYNext; // assigns the next value of the ball's location from the top side of the screen to it's location.  
+            leftPaddleY  <= leftPaddleYNext; // assigns the next value of the left paddle's location from the top side of the screen to it's location.
+            rightPaddleY <= rightPaddleYNext; // assigns the next value of the right paddle's location from the top side of the screen to it's location.
+            scorer       <= scorerNext;
+        end
+    end
+
+
     always @(posedge clk) 
     begin 
         rgbReg <= rgbNext;   
     end
 
-    // mux
-    assign outputMux = {videoOn, displayLeftPaddle, displayRightPaddle, displayBall, displayPlayer1Score, displayPlayer2Score, displayGameName}; 
-    // assign rgbNext from outputMux
-    assign rgbNext = outputMux === 7'b1000000 ? light_blue:
+    assign outputMux = {videoOn, displayLeftPaddle, displayRightPaddle, displayBall, displayLeftScore, displayRightScore, displayGameName}; 
+    assign rgbNext = outputMux === 7'b1000000 ? purple:
                      outputMux === 7'b1100000 ? rgbLeftPaddle: 
                      outputMux === 7'b1101000 ? rgbLeftPaddle: 
                      outputMux === 7'b1010000 ? rgbRightPaddle: 
@@ -359,47 +363,47 @@ module gameLogic(
                      outputMux === 7'b1001000 ? rgbBall:
                      outputMux === 7'b1001010 ? rgbBall:
                      outputMux === 7'b1001100 ? rgbBall:
-                     outputMux === 7'b1000100 ? rgbPlayer1Score:
-                     outputMux === 7'b1000010 ? rgbPlayer2Score:
+                     outputMux === 7'b1000100 ? rgbLeftScore:
+                     outputMux === 7'b1000010 ? rgbRightScore:
                      outputMux === 7'b1000001 ? rgbGameName:
                      12'b000000000000;
                     
-    // output part
+    /*======================= Output =============================*/
     assign rgb = rgbReg; 
-    assign scorePlayer1 = totalscorePlayer1;
-    assign scorePlayer2 = totalscorePlayer2;
+    assign leftScore = totalLeftScore;
+    assign rightScore = totalRightScore;
 
-    // Score management
+    /*======================= Score =============================*/
     always @(posedge clk)
     begin
         if (reset) 
         begin
             // Reset scores for both players
-            totalscorePlayer1 <= 8'd0;
-            totalscorePlayer2 <= 8'd0;
+            totalLeftScore <= 8'd0;
+            totalRightScore <= 8'd0;
         end
-        else if (scoreCheckerPlayer1 && !throwBall) 
+        else if (scoreCheckerLeft && !throwBall) 
         begin
             // Increment Player 1 score
-            if (totalscorePlayer1[3:0] < 4'd9)
-                totalscorePlayer1[3:0] <= totalscorePlayer1[3:0] + 1;
-            else if (totalscorePlayer1[7:4] < 4'd9) 
+            if (totalLeftScore[3:0] < 4'd9)
+                totalLeftScore[3:0] <= totalLeftScore[3:0] + 1;
+            else if (totalLeftScore[7:4] < 4'd9) 
             begin
                 // If units digit is 9, increment tens and reset units
-                totalscorePlayer1[3:0] <= 4'd0;
-                totalscorePlayer1[7:4] <= totalscorePlayer1[7:4] + 1;
+                totalLeftScore[3:0] <= 4'd0;
+                totalLeftScore[7:4] <= totalLeftScore[7:4] + 1;
             end
         end
-        else if (scoreCheckerPlayer2 && !throwBall) 
+        else if (scoreCheckerRight & !throwBall) 
         begin
             // Increment Player 2 score
-            if (totalscorePlayer2[3:0] < 4'd9)
-                totalscorePlayer2[3:0] <= totalscorePlayer2[3:0] + 1;
-            else if (totalscorePlayer2[7:4] < 4'd9) 
+            if (totalRightScore[3:0] < 4'd9)
+                totalRightScore[3:0] <= totalRightScore[3:0] + 1;
+            else if (totalRightScore[7:4] < 4'd9) 
             begin
                 // If units digit is 9, increment tens and reset units
-                totalscorePlayer2[3:0] <= 4'd0;
-                totalscorePlayer2[7:4] <= totalscorePlayer2[7:4] + 1;
+                totalRightScore[3:0] <= 4'd0;
+                totalRightScore[7:4] <= totalRightScore[7:4] + 1;
             end
         end
     end

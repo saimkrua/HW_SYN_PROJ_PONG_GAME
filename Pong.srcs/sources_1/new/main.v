@@ -22,22 +22,22 @@ module main(
     wire [8:0] scorePlayer2;
     wire [19:0] clk_div;
 
-    /*======================= IO =============================*/    
-    uart keyboardUART(clk, RsRx, RsTx, movement, throwBall); // keyboard input
+    /*======================= I/O =============================*/    
+    uart keyboardUART(clk, RsRx, RsTx, movement, throwBall);
     /*================================================================*/
     
-    /*======================= GAMEINSTANCE =============================*/
+    /*======================= GAME INSTANCE =============================*/
     gameLogic gameInstance(
-        clk, // in : clock
-        btnU,// in : reset
-        x,// in : position x from vga
-        y,// in : position y from vga
-        video_on, // in : show video from vga
-        movement, // in : from IO {player1Up, player1Down, player2Up, player2Down}
-        throwBall, // in : from IO
-        rgb_out, // out : for output 
-        scorePlayer1, // out : for 7 seg
-        scorePlayer2 // out : for 7 seg
+        clk,            // in : clock
+        btnU,           // in : reset
+        x,              // in : position x from vga
+        y,              // in : position y from vga
+        video_on,       // in : show video from vga
+        movement,       // in : from IO {player1Up, player1Down, player2Up, player2Down}
+        throwBall,      // in : from IO
+        rgb_out,        // out : for output 
+        scorePlayer1,   // out : for 7 seg
+        scorePlayer2    // out : for 7 seg
     );
     /*================================================================*/
     
@@ -53,7 +53,7 @@ module main(
     
     /*======================= SEVEN SEGMENT =============================*/
     assign clk_div[0] = clk;
-    generate for(genvar i = 0;i<19;i = i+1) begin // divine clock by 2^19
+    generate for(genvar i = 0;i<19;i = i+1) begin // divide clock by 2^19
         clock_divider div1(clk_div[i],clk_div[i+1]);
     end endgenerate
     
