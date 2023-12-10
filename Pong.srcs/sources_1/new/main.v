@@ -4,7 +4,6 @@ module main(
     input clk,
     input RsRx,
     input btnU,
-    input btnD,
     output RsTx,
     output wire [3:0] vgaRed,
     output wire [3:0] vgaGreen,
@@ -20,7 +19,6 @@ module main(
     wire [11:0] rgb_out;
     wire [8:0] scorePlayer1;
     wire [8:0] scorePlayer2;
-    wire [19:0] clk_div;
 
     /*======================= I/O =============================*/    
     uart keyboardUART(clk, RsRx, RsTx, movement, throwBall);
@@ -52,12 +50,7 @@ module main(
     
     
     /*======================= SEVEN SEGMENT =============================*/
-    assign clk_div[0] = clk;
-    generate for(genvar i = 0;i<19;i = i+1) begin // divide clock by 2^19
-        clock_divider div1(clk_div[i],clk_div[i+1]);
-    end endgenerate
-    
-    seven_segment_tdm segmentDisplay(clk_div[19],scorePlayer1[7:4],scorePlayer1[3:0],scorePlayer2[7:4],scorePlayer2[3:0],seg,an,1);
+    seven_segment_tdm segmentDisplay(clk, scorePlayer1[7:4], scorePlayer1[3:0], scorePlayer2[7:4], scorePlayer2[3:0], seg, an, 1);
     /*================================================================*/
     
 endmodule

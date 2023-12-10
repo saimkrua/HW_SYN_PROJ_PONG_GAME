@@ -8,6 +8,12 @@ module seven_segment_tdm (
     output dot
 );
 
+wire [19:0] clk_div;
+assign clk_div[0] = clk;
+generate for(genvar i = 0;i<19;i = i+1) begin // divine clock by 2^19
+    clock_divider div1(clk_div[i],clk_div[i+1]);
+end endgenerate
+    
 reg [3:0] hexIn;
 reg [1:0] tdm_counter = 2'b00;
 reg [3:0] dispEn;
@@ -22,7 +28,7 @@ assign an = ~dispEn;
 // Instantiate the Hex to 7-Segment Encoder
 hex_to_7seg encoder(hexIn,segments);
 
-always @(posedge clk) begin
+always @(posedge clk_div[19]) begin
     tdm_counter = (tdm_counter == 2'b11) ? 2'b00 : tdm_counter+1; 
 end
 
